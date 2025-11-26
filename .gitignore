@@ -1,0 +1,9 @@
+# Maven target directory
+target/
+
+# VS Code settings
+.vscode/
+
+# OS files
+*.class
+*.log
