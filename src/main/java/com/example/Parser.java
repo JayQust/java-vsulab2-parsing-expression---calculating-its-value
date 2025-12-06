@@ -85,39 +85,54 @@ public class Parser {
     private ExpressionNode parseFactor() {
         Token tok = peek();
 
-        switch (tok.type()) {
-            case NUMBER -> {next(); 
-                return new NumberNode(Double.parseDouble(tok.text()));
+        return switch (tok.type()) { //return switch для выражения
+            case NUMBER -> {
+                next(); 
+                // Обработка числа
+                yield new NumberNode(Double.parseDouble(tok.text()));
             }
-            case IDENTOFIER -> {next(); 
+            case IDENTOFIER -> {
+                next(); 
                 String name = tok.text();
-                if (peek().type() == TokenType.LPAREN) {next(); 
+                
+                // Проверка на вызов функции
+                if (peek().type() == TokenType.LPAREN) {
+                    next(); 
                     List<ExpressionNode> args = new ArrayList<>();
+                    
+                    // Обработка аргументов функции
                     if  (peek().type() != TokenType.RPAREN) {
                         do {
                             args.add(parseExpression());
                         } while (peek().type() == TokenType.COMMA && next() != null);
                     }
+                    
                     if (peek().type() != TokenType.RPAREN)
-                        throw new RuntimeException("Ожидалась ')'");
+                        throw new RuntimeException("Ожидалась ')' для вызова функции.");
                     next();
 
-                    return new FunctionNode(name, args);
+                    yield new FunctionNode(name, args);
                 }
-                return new VariableNode(name);
+                // Это переменная
+                yield new VariableNode(name);
             }
-            case LPAREN -> {next();
+            case LPAREN -> {
+                next();
                 ExpressionNode node = parseExpression();
                 if (peek().type() != TokenType.RPAREN)
-                    throw new RuntimeException("Ожидалась ')'");
+                    throw new RuntimeException("Ожидалась ')' для группировки.");
                 next();
-                return node;
+                // Возвращаем результат выражения внутри скобок
+                yield node;
             }
-            case MINUS -> {next();
-                return new BinaryOpNode(new NumberNode(0), TokenType.MINUS, parseFactor());
+            case MINUS -> {
+                next();
+                // Обработка унарного минуса: 0 - Factor
+                yield new BinaryOpNode(new NumberNode(0), TokenType.MINUS, parseFactor());
             }
-        }
-
-        throw new RuntimeException("Неожиданный токен: " + tok.text());
+            
+            // Эта метка обрабатывает все остальные константы enum (DIV, RPAREN, COMMA, END, POW, MUL, PLUS и т.д.)
+            default -> throw new RuntimeException("Неожиданный токен: " + tok.text() + " (" + tok.type() + "). Ожидалось число, идентификатор или '('");
+        };
     }
 }

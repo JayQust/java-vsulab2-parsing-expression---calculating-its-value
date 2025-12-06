@@ -8,9 +8,10 @@ import java.util.List;
 public class App {
 
     public static void main(String[] args) {
-        try {
-            System.out.println("Введите выражение:");
-            String input = new java.util.Scanner(System.in).nextLine();
+        System.out.println("Введите выражение:");
+
+        try (java.util.Scanner scanner = new java.util.Scanner(System.in)) {
+            String input = scanner.nextLine();
 
             Lexer lexer = new Lexer(input);
             List<Token> tokens = lexer.tokenize();
